@@ -9,6 +9,7 @@ import { GET_PAYMENTS } from "@/lib/queries/GetPayments";
 import DashboardContent from "@/components/Dashboard/DashboardContent";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import Sidebar from "@/components/Dashboard/Sidebar";
 
 type Tenant = {
   id: string;
@@ -116,22 +117,27 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50 p-6">
-      <main className="flex-1 flex flex-col">
-        <div className="flex justify-between items-center mb-10 border-b border-gray-200 pb-4">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Dashboard
-          </h1>
-        </div>
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div className="min-h-screen flex bg-gray-50 p-6">
+          <main className="flex-1 flex flex-col">
+            <div className="flex justify-between items-center mb-10 border-b border-gray-200 pb-4">
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                Dashboard
+              </h1>
+            </div>
 
-        <div className="flex-1 overflow-y-auto ">
-          <DashboardContent
-            tenants={tenants}
-            apartments={apartments}
-            payments={payments}
-          />
+            <div className="flex-1 overflow-y-auto ">
+              <DashboardContent
+                tenants={tenants}
+                apartments={apartments}
+                payments={payments}
+              />
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

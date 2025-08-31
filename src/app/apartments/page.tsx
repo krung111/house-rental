@@ -21,6 +21,7 @@ import {
   DELETE_APARTMENT,
   UPDATE_APARTMENT,
 } from "@/lib/mutations/ApartmentsMutation";
+import Sidebar from "@/components/Dashboard/Sidebar";
 
 export interface Apartment {
   id?: string;
@@ -188,120 +189,128 @@ const Apartments: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-10 border-b border-gray-200 pb-4">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-          Apartment Management
-        </h1>
-        <Button
-          onClick={openAddModal}
-          className="rounded-lg px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white shadow-sm flex items-center gap-2 transition-all"
-        >
-          <Plus size={18} /> <span className="font-medium">Add Apartment</span>
-        </Button>
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div className="p-6 bg-gray-50 min-h-screen">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-10 border-b border-gray-200 pb-4">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              Apartment Management
+            </h1>
+            <Button
+              onClick={openAddModal}
+              className="rounded-lg px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white shadow-sm flex items-center gap-2 transition-all"
+            >
+              <Plus size={18} />{" "}
+              <span className="font-medium">Add Apartment</span>
+            </Button>
+          </div>
+
+          {/* Table */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-x-auto">
+            <Table className="min-w-full">
+              <TableCaption className="text-gray-500 text-sm py-4">
+                Manage apartments and their availability
+              </TableCaption>
+              <TableHeader className="bg-gray-100/70">
+                <TableRow>
+                  <TableHead className="p-4 text-left w-40">Name</TableHead>
+                  <TableHead className="p-4 text-left w-32">Type</TableHead>
+                  <TableHead className="p-4 text-left w-60">Address</TableHead>
+                  <TableHead className="p-4 text-center w-32">
+                    Rent Amount
+                  </TableHead>
+                  <TableHead className="p-4 text-center w-28">Status</TableHead>
+                  <TableHead className="p-4 text-center w-28">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {loading
+                  ? // Skeleton Rows
+                    [...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-4 w-28" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-16" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-20 mx-auto" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-6 w-20 mx-auto rounded-full" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-4 w-16 mx-auto" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : apartmentsData.map(({ node }: { node: any }) => (
+                      <TableRow
+                        key={node?.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <TableCell className="font-medium text-gray-900">
+                          {node?.name}
+                        </TableCell>
+                        <TableCell className="text-gray-700">
+                          {node?.type || "-"}
+                        </TableCell>
+                        <TableCell className="text-gray-700">
+                          {node?.address || "-"}
+                        </TableCell>
+                        <TableCell className="text-center text-gray-800">
+                          ₱{Number(node?.rent_amount).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span
+                            className={`px-3 py-1 capitalize rounded-full text-xs font-medium ${
+                              node?.status === "available"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {node?.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="flex justify-center gap-3">
+                          <button
+                            onClick={() => openEditModal(node)}
+                            className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteApartment(node?.id)}
+                            className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Modal */}
+          {isModalOpen && (
+            <ApartmentModal
+              initialData={editingApartment}
+              onSave={handleSaveApartment}
+              onClose={closeModal}
+            />
+          )}
+        </div>
       </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-x-auto">
-        <Table className="min-w-full">
-          <TableCaption className="text-gray-500 text-sm py-4">
-            Manage apartments and their availability
-          </TableCaption>
-          <TableHeader className="bg-gray-100/70">
-            <TableRow>
-              <TableHead className="p-4 text-left w-40">Name</TableHead>
-              <TableHead className="p-4 text-left w-32">Type</TableHead>
-              <TableHead className="p-4 text-left w-60">Address</TableHead>
-              <TableHead className="p-4 text-center w-32">
-                Rent Amount
-              </TableHead>
-              <TableHead className="p-4 text-center w-28">Status</TableHead>
-              <TableHead className="p-4 text-center w-28">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {loading
-              ? // Skeleton Rows
-                [...Array(5)].map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Skeleton className="h-4 w-28" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-16" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-40" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20 mx-auto" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-20 mx-auto rounded-full" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-16 mx-auto" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              : apartmentsData.map(({ node }: { node: any }) => (
-                  <TableRow
-                    key={node?.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <TableCell className="font-medium text-gray-900">
-                      {node?.name}
-                    </TableCell>
-                    <TableCell className="text-gray-700">
-                      {node?.type || "-"}
-                    </TableCell>
-                    <TableCell className="text-gray-700">
-                      {node?.address || "-"}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-800">
-                      ₱{Number(node?.rent_amount).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span
-                        className={`px-3 py-1 capitalize rounded-full text-xs font-medium ${
-                          node?.status === "available"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {node?.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="flex justify-center gap-3">
-                      <button
-                        onClick={() => openEditModal(node)}
-                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteApartment(node?.id)}
-                        className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <ApartmentModal
-          initialData={editingApartment}
-          onSave={handleSaveApartment}
-          onClose={closeModal}
-        />
-      )}
     </div>
   );
 };

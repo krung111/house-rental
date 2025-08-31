@@ -28,6 +28,7 @@ import { GET_PAYMENTS } from "@/lib/queries/GetPayments";
 import { GET_TENANTS } from "@/lib/queries/GetTenants";
 import { INSERT_PAYMENT } from "@/lib/mutations/InsertPayments";
 import { DELETE_PAYMENT, EDIT_PAYMENT } from "@/lib/mutations/PaymentMutation";
+import Sidebar from "@/components/Dashboard/Sidebar";
 
 export default function Payments() {
   const { data, loading } = useQuery(GET_PAYMENTS);
@@ -195,291 +196,309 @@ export default function Payments() {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div className="p-6 bg-gray-50 min-h-screen">
+          <div className="flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
+            <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
 
-        {/* Add Payment Modal */}
-        <Dialog open={openAdd} onOpenChange={setOpenAdd}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-4 py-2 min-h-[50px]">
-              Add Payment
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="space-y-4">
-            <DialogHeader>
-              <DialogTitle>Add Payment</DialogTitle>
-            </DialogHeader>
+            {/* Add Payment Modal */}
+            <Dialog open={openAdd} onOpenChange={setOpenAdd}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-4 py-2 min-h-[50px]">
+                  Add Payment
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="space-y-4">
+                <DialogHeader>
+                  <DialogTitle>Add Payment</DialogTitle>
+                </DialogHeader>
 
-            <div>
-              <Label>Tenant</Label>
-              <select
-                value={tenantId}
-                onChange={(e) => {
-                  const selectedId = e.target.value;
-                  setTenantId(selectedId);
+                <div>
+                  <Label>Tenant</Label>
+                  <select
+                    value={tenantId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      setTenantId(selectedId);
 
-                  const tenant = tenantsData?.tenantsCollection?.edges?.find(
-                    ({ node }: any) => node.id === selectedId
-                  )?.node;
+                      const tenant =
+                        tenantsData?.tenantsCollection?.edges?.find(
+                          ({ node }: any) => node.id === selectedId
+                        )?.node;
 
-                  if (tenant) {
-                    setAmount(tenant.rent || ""); // auto-fill amount
-                  } else {
-                    setAmount(""); // clear if no tenant
-                  }
-                }}
-                className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
-              >
-                <option value="">Select Tenant</option>
-                {tenantsData?.tenantsCollection?.edges?.map(({ node }: any) => (
-                  <option key={node.id} value={node.id}>
-                    {node.name} - {node.apartment_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label>Amount</Label>
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="min-h-[50px]"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <Label>Date From</Label>
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="min-h-[50px]"
-                />
-              </div>
-              <div className="flex-1">
-                <Label>Date To</Label>
-                <Input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="min-h-[50px]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label>Status</Label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
-              >
-                <option value="paid">Paid</option>
-                <option value="pending">Pending</option>
-              </select>
-            </div>
-
-            <Button
-              onClick={handleAddPayment}
-              className="w-full min-h-[50px] bg-gray-900 hover:bg-gray-800 text-white rounded-lg"
-            >
-              Save
-            </Button>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Payments Table */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-x-auto">
-        <Table className="min-w-full">
-          <TableCaption className="text-gray-500 text-sm py-4">
-            Manage tenant payments
-          </TableCaption>
-          <TableHeader className="bg-gray-100/70">
-            <TableRow>
-              <TableHead className="p-4 text-left w-48">Tenant</TableHead>
-              <TableHead className="p-4 text-center w-32">Amount</TableHead>
-              <TableHead className="p-4 text-center w-60">Date Range</TableHead>
-              <TableHead className="p-4 text-center w-28">Status</TableHead>
-              <TableHead className="p-4 text-center w-28">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading
-              ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
-              : data?.paymentsCollection?.edges?.map(({ node }: any) => (
-                  <TableRow
-                    key={node.id}
-                    className="hover:bg-gray-50 transition-colors"
+                      if (tenant) {
+                        setAmount(tenant.rent || ""); // auto-fill amount
+                      } else {
+                        setAmount(""); // clear if no tenant
+                      }
+                    }}
+                    className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
                   >
-                    <TableCell className="font-medium text-gray-900 pl-4">
-                      {node.tenant_name}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-800">
-                      ₱{Number(node.amount).toLocaleString()}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-700">
-                      {node.date_from && node.date_to
-                        ? `${moment(node.date_from).format(
-                            "MMM D, YYYY"
-                          )} - ${moment(node.date_to).format("MMM D, YYYY")}`
-                        : "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                          node.status === "paid"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {node.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="flex justify-center gap-3">
-                      {/* Edit Button */}
-                      <button
-                        onClick={() => {
-                          setSelectedPayment(node);
-                          setTenantId(node.tenant_id);
-                          setAmount(node.amount);
-                          setDateFrom(node.date_from);
-                          setDateTo(node.date_to);
-                          setStatus(node.status);
-                          setOpenEdit(true);
-                        }}
-                        className="p-2 rounded-lg hover:bg-gray-100 transition min-h-[50px]"
-                      >
-                        <Edit size={16} />
-                      </button>
+                    <option value="">Select Tenant</option>
+                    {tenantsData?.tenantsCollection?.edges?.map(
+                      ({ node }: any) => (
+                        <option key={node.id} value={node.id}>
+                          {node.name} - {node.apartment_name}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
 
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => {
-                          setSelectedPayment(node);
-                          setOpenDelete(true);
-                        }}
-                        className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition min-h-[50px]"
+                <div>
+                  <Label>Amount</Label>
+                  <Input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="min-h-[50px]"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label>Date From</Label>
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="min-h-[50px]"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label>Date To</Label>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="min-h-[50px]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Status</Label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                    className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
+                  >
+                    <option value="paid">Paid</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
+
+                <Button
+                  onClick={handleAddPayment}
+                  className="w-full min-h-[50px] bg-gray-900 hover:bg-gray-800 text-white rounded-lg"
+                >
+                  Save
+                </Button>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Payments Table */}
+          <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-x-auto">
+            <Table className="min-w-full">
+              <TableCaption className="text-gray-500 text-sm py-4">
+                Manage tenant payments
+              </TableCaption>
+              <TableHeader className="bg-gray-100/70">
+                <TableRow>
+                  <TableHead className="p-4 text-left w-48">Tenant</TableHead>
+                  <TableHead className="p-4 text-center w-32">Amount</TableHead>
+                  <TableHead className="p-4 text-center w-60">
+                    Date Range
+                  </TableHead>
+                  <TableHead className="p-4 text-center w-28">Status</TableHead>
+                  <TableHead className="p-4 text-center w-28">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <SkeletonRow key={i} />
+                    ))
+                  : data?.paymentsCollection?.edges?.map(({ node }: any) => (
+                      <TableRow
+                        key={node.id}
+                        className="hover:bg-gray-50 transition-colors"
                       >
-                        <Trash2 size={16} />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
+                        <TableCell className="font-medium text-gray-900 pl-4">
+                          {node.tenant_name}
+                        </TableCell>
+                        <TableCell className="text-center text-gray-800">
+                          ₱{Number(node.amount).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-center text-gray-700">
+                          {node.date_from && node.date_to
+                            ? `${moment(node.date_from).format(
+                                "MMM D, YYYY"
+                              )} - ${moment(node.date_to).format(
+                                "MMM D, YYYY"
+                              )}`
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                              node.status === "paid"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
+                            {node.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="flex justify-center gap-3">
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => {
+                              setSelectedPayment(node);
+                              setTenantId(node.tenant_id);
+                              setAmount(node.amount);
+                              setDateFrom(node.date_from);
+                              setDateTo(node.date_to);
+                              setStatus(node.status);
+                              setOpenEdit(true);
+                            }}
+                            className="p-2 rounded-lg hover:bg-gray-100 transition min-h-[50px]"
+                          >
+                            <Edit size={16} />
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => {
+                              setSelectedPayment(node);
+                              setOpenDelete(true);
+                            }}
+                            className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition min-h-[50px]"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Edit Payment Modal */}
+          <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+            <DialogContent className="space-y-4">
+              <DialogHeader>
+                <DialogTitle>Edit Payment</DialogTitle>
+              </DialogHeader>
+
+              <div>
+                <Label>Tenant</Label>
+                <select
+                  value={tenantId}
+                  onChange={(e) => setTenantId(e.target.value)}
+                  className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
+                >
+                  <option value="">Select Tenant</option>
+                  {tenantsData?.tenantsCollection?.edges?.map(
+                    ({ node }: any) => (
+                      <option key={node.id} value={node.id}>
+                        {node.name} - {node.apartment_name}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <Label>Amount</Label>
+                <Input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="min-h-[50px]"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Label>Date From</Label>
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="min-h-[50px]"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label>Date To</Label>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="min-h-[50px]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Status</Label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
+                >
+                  <option value="paid">Paid</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+
+              <Button
+                onClick={handleEditPayment}
+                className="w-full min-h-[50px] bg-gray-900 hover:bg-gray-800 text-white rounded-lg"
+              >
+                Save Changes
+              </Button>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Payment Modal */}
+          <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+            <DialogContent className="space-y-6 p-6 w-[400px] sm:w-[90%] rounded-xl shadow-lg">
+              <DialogHeader className="text-center border-b border-gray-200 pb-3">
+                <DialogTitle className="text-xl font-semibold text-gray-900">
+                  Confirm Deletion
+                </DialogTitle>
+              </DialogHeader>
+
+              <p className="text-gray-700 ">
+                Are you sure you want to delete this payment? This action cannot
+                be undone.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                <Button
+                  onClick={handleDeletePayment}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium min-h-[50px] flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete
+                </Button>
+                <Button
+                  onClick={() => setOpenDelete(false)}
+                  variant="outline"
+                  className="flex-1 min-h-[50px] font-medium"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-
-      {/* Edit Payment Modal */}
-      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="space-y-4">
-          <DialogHeader>
-            <DialogTitle>Edit Payment</DialogTitle>
-          </DialogHeader>
-
-          <div>
-            <Label>Tenant</Label>
-            <select
-              value={tenantId}
-              onChange={(e) => setTenantId(e.target.value)}
-              className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
-            >
-              <option value="">Select Tenant</option>
-              {tenantsData?.tenantsCollection?.edges?.map(({ node }: any) => (
-                <option key={node.id} value={node.id}>
-                  {node.name} - {node.apartment_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label>Amount</Label>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="min-h-[50px]"
-            />
-          </div>
-
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Label>Date From</Label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="min-h-[50px]"
-              />
-            </div>
-            <div className="flex-1">
-              <Label>Date To</Label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="min-h-[50px]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label>Status</Label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full min-h-[50px] border border-gray-300 rounded-lg px-3 py-2"
-            >
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
-
-          <Button
-            onClick={handleEditPayment}
-            className="w-full min-h-[50px] bg-gray-900 hover:bg-gray-800 text-white rounded-lg"
-          >
-            Save Changes
-          </Button>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Payment Modal */}
-      <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-        <DialogContent className="space-y-6 p-6 w-[400px] sm:w-[90%] rounded-xl shadow-lg">
-          <DialogHeader className="text-center border-b border-gray-200 pb-3">
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              Confirm Deletion
-            </DialogTitle>
-          </DialogHeader>
-
-          <p className="text-gray-700 ">
-            Are you sure you want to delete this payment? This action cannot be
-            undone.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            <Button
-              onClick={handleDeletePayment}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium min-h-[50px] flex items-center justify-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" /> Delete
-            </Button>
-            <Button
-              onClick={() => setOpenDelete(false)}
-              variant="outline"
-              className="flex-1 min-h-[50px] font-medium"
-            >
-              Cancel
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

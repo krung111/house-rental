@@ -15,6 +15,7 @@ import * as XLSX from "xlsx";
 import { GET_PAYMENTS } from "@/lib/queries/GetPayments";
 import { GET_EXPENSES } from "@/lib/queries/GetExpenses";
 import moment from "moment";
+import Sidebar from "@/components/Dashboard/Sidebar";
 
 type Report = {
   id: string;
@@ -134,136 +135,145 @@ export default function ReportsPage() {
     );
 
   return (
-    <div className="p-6 space-y-6">
-      <Card className="shadow-lg rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">Reports</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Filters */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            {/* Search */}
-            <Input
-              placeholder="Search by tenant, type, or description..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-sm min-h-[50px] text-white placeholder-gray-400 border-gray-700 focus:ring-gray-500 focus:border-gray-500 bg-transparent"
-            />
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+        <div className="p-6 space-y-6">
+          <Card className="shadow-lg rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Filters */}
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                {/* Search */}
+                <Input
+                  placeholder="Search by tenant, type, or description..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="max-w-sm min-h-[50px] text-white placeholder-gray-400 border-gray-700 focus:ring-gray-500 focus:border-gray-500 bg-transparent"
+                />
 
-            <div className="flex items-center gap-2">
-              {/* From Date */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button className="w-[200px] min-h-[50px] justify-start text-left text-black border border-gray-700 rounded-lg bg-transparent hover:bg-transparent">
-                    {dateFrom
-                      ? moment(dateFrom).format("MMM DD, YYYY")
-                      : "From date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <Calendar
-                    mode="single"
-                    selected={dateFrom}
-                    onSelect={setDateFrom}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+                <div className="flex items-center gap-2">
+                  {/* From Date */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button className="w-[200px] min-h-[50px] justify-start text-left text-black border border-gray-700 rounded-lg bg-transparent hover:bg-transparent">
+                        {dateFrom
+                          ? moment(dateFrom).format("MMM DD, YYYY")
+                          : "From date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <Calendar
+                        mode="single"
+                        selected={dateFrom}
+                        onSelect={setDateFrom}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
 
-              <span className="mx-2 text-black">to</span>
+                  <span className="mx-2 text-black">to</span>
 
-              {/* To Date */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button className="w-[200px] min-h-[50px] justify-start text-left text-black border border-gray-700 rounded-lg bg-transparent hover:bg-transparent">
-                    {dateTo ? moment(dateTo).format("MMM DD, YYYY") : "To date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <Calendar
-                    mode="single"
-                    selected={dateTo}
-                    onSelect={setDateTo}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+                  {/* To Date */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button className="w-[200px] min-h-[50px] justify-start text-left text-black border border-gray-700 rounded-lg bg-transparent hover:bg-transparent">
+                        {dateTo
+                          ? moment(dateTo).format("MMM DD, YYYY")
+                          : "To date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <Calendar
+                        mode="single"
+                        selected={dateTo}
+                        onSelect={setDateTo}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
 
-              {/* Clear Filters */}
-              {(dateFrom || dateTo || search) && (
+                  {/* Clear Filters */}
+                  {(dateFrom || dateTo || search) && (
+                    <Button
+                      variant="outline"
+                      className="text-gray-400 hover:text-white border-gray-700 min-h-[50px]"
+                      onClick={() => {
+                        setDateFrom(undefined);
+                        setDateTo(undefined);
+                        setSearch("");
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
+
                 <Button
-                  variant="outline"
-                  className="text-gray-400 hover:text-white border-gray-700 min-h-[50px]"
-                  onClick={() => {
-                    setDateFrom(undefined);
-                    setDateTo(undefined);
-                    setSearch("");
-                  }}
+                  className="w-full md:w-auto min-h-[50px] flex items-center justify-center gap-2 rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition"
+                  onClick={downloadExcel}
                 >
-                  Clear Filters
+                  Download Excel
                 </Button>
-              )}
-            </div>
+              </div>
 
-            <Button
-              className="w-full md:w-auto min-h-[50px] flex items-center justify-center gap-2 rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition"
-              onClick={downloadExcel}
-            >
-              Download Excel
-            </Button>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full border-collapse">
-              <thead className="bg-gray-100 text-gray-700 text-sm">
-                <tr>
-                  <th className="px-4 py-3 text-left">Type</th>
-                  <th className="px-4 py-3 text-left">Tenant/Expense</th>
-                  <th className="px-4 py-3 text-left">Description</th>
-                  <th className="px-4 py-3 text-left">Amount</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <SkeletonRow key={i} />
-                  ))
-                ) : filteredReports.length > 0 ? (
-                  filteredReports.map((report) => (
-                    <tr
-                      key={report.id}
-                      className="border-t hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3">{report.type}</td>
-                      <td className="px-4 py-3">{report.name}</td>
-                      <td className="px-4 py-3">{report.description ?? "-"}</td>
-                      <td className="px-4 py-3">
-                        ₱{report.amount.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3">{report.status ?? "-"}</td>
-                      <td className="px-4 py-3">
-                        {moment(report.date).format("MMM DD, YYYY")}
-                      </td>
+              {/* Table */}
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full border-collapse">
+                  <thead className="bg-gray-100 text-gray-700 text-sm">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Type</th>
+                      <th className="px-4 py-3 text-left">Tenant/Expense</th>
+                      <th className="px-4 py-3 text-left">Description</th>
+                      <th className="px-4 py-3 text-left">Amount</th>
+                      <th className="px-4 py-3 text-left">Status</th>
+                      <th className="px-4 py-3 text-left">Date</th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-4 py-6 text-center text-gray-500"
-                    >
-                      No reports found for the selected filters.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                  </thead>
+                  <tbody>
+                    {isLoading ? (
+                      Array.from({ length: 6 }).map((_, i) => (
+                        <SkeletonRow key={i} />
+                      ))
+                    ) : filteredReports.length > 0 ? (
+                      filteredReports.map((report) => (
+                        <tr
+                          key={report.id}
+                          className="border-t hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-4 py-3">{report.type}</td>
+                          <td className="px-4 py-3">{report.name}</td>
+                          <td className="px-4 py-3">
+                            {report.description ?? "-"}
+                          </td>
+                          <td className="px-4 py-3">
+                            ₱{report.amount.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3">{report.status ?? "-"}</td>
+                          <td className="px-4 py-3">
+                            {moment(report.date).format("MMM DD, YYYY")}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-4 py-6 text-center text-gray-500"
+                        >
+                          No reports found for the selected filters.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>{" "}
     </div>
   );
 }
