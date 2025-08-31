@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_APARTMENTS } from "@/lib/queries/GetApartments";
 import { INSERT_APARTMENT } from "@/lib/mutations/ApartmentsMutation/InsertApartment";
 import { ApartmentModal } from "@/components/ApartmentModal";
