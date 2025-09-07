@@ -13,6 +13,7 @@ import {
   ReceiptText,
 } from "lucide-react";
 import { JSX } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export type MenuType =
   | "dashboard"
@@ -65,7 +66,14 @@ const menuItems: { icon: JSX.Element; label: string; href: string }[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      // Remove the cookie if you set it manually
+      document.cookie = "authToken=; path=/; max-age=0";
+      window.location.href = "/login";
+    }
+  };
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       {/* Brand */}
@@ -99,7 +107,10 @@ export default function Sidebar() {
 
       {/* Logout */}
       <div className="p-4 border-t border-gray-200">
-        <button className="w-full flex items-center justify-center gap-2 rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 rounded-lg bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800 transition"
+        >
           Logout
         </button>
       </div>
