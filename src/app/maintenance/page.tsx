@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { Plus, Edit, Trash2, Calendar, Wrench, DollarSign } from "lucide-react";
 import {
   Table,
@@ -64,14 +64,10 @@ interface GetMaintenanceRequestsData {
 
 const Maintenance: React.FC = () => {
   const deletedIdRef = useRef<string | null>(null);
-  const { data, loading, error, refetch } = useQuery(GET_MAINTENANCE_REQUESTS, {
+  const { data, loading, error } = useQuery(GET_MAINTENANCE_REQUESTS, {
     variables: { first: 50 },
   });
-  const {
-    data: tenantsData,
-    loading: tenantsLoading,
-    error: tenantsError,
-  } = useQuery(GET_TENANTS, {
+  const { data: tenantsData, loading: tenantsLoading } = useQuery(GET_TENANTS, {
     variables: { first: 50 },
   });
 
