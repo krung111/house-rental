@@ -16,6 +16,8 @@ import { GET_PAYMENTS } from "@/lib/queries/GetPayments";
 import { GET_EXPENSES } from "@/lib/queries/GetExpenses";
 import moment from "moment";
 import Sidebar from "@/components/Dashboard/Sidebar";
+import { GET_MAINTENANCE_REQUESTS } from "@/lib/queries/GetMaintenanceRequests";
+import { GET_TENANTS } from "@/lib/queries/GetTenants";
 
 type Report = {
   id: string;
@@ -50,6 +52,49 @@ export default function ReportsPage() {
     fetchPolicy: "cache-and-network",
   });
 
+  const {
+    data: maintenanceData,
+    loading: maintenanceLoading,
+    error: maintenanceError,
+  } = useQuery(GET_MAINTENANCE_REQUESTS, {
+    variables: { first: 50 },
+    fetchPolicy: "cache-and-network",
+  });
+
+  const {
+    data: tenantsData,
+    loading: tenantsLoading,
+    error: tenantsError,
+  } = useQuery(GET_TENANTS, {
+    variables: { first: 50 },
+  });
+
+  const maintenanceReports: Report[] = useMemo(() => {
+    const tenants =
+      tenantsData?.tenantsCollection?.edges.map((edge: any) => ({
+        id: edge.node.id,
+        name: edge.node.name,
+      })) || [];
+
+    return (
+      maintenanceData?.maintenance_requestsCollection?.edges.map(
+        (edge: any) => {
+          const tenant = tenants.find((t) => t.id === edge.node.tenant_id);
+
+          return {
+            id: edge.node.id,
+            type: "Maintenance",
+            name: tenant ? tenant.name : "Unknown Tenant",
+            amount: Number(edge.node.cost || 0),
+            date: edge.node.created_at,
+            description: edge.node.description,
+            status: edge.node.status,
+          };
+        }
+      ) || []
+    );
+  }, [maintenanceData, tenantsData]);
+
   const paymentReports: Report[] = useMemo(() => {
     return (
       paymentsData?.paymentsCollection?.edges.map((edge: any) => ({
@@ -78,9 +123,14 @@ export default function ReportsPage() {
   }, [expensesData]);
 
   const filteredReports = useMemo(() => {
-    const reports: Report[] = [...paymentReports, ...expenseReports];
+    const reports: Report[] = [
+      ...paymentReports,
+      ...expenseReports,
+      ...maintenanceReports, // ✅ include maintenance
+    ];
 
     const searchLower = search.toLowerCase();
+
     return reports.filter((report) => {
       const matchesSearch =
         report.type.toLowerCase().includes(searchLower) ||
@@ -95,7 +145,14 @@ export default function ReportsPage() {
 
       return matchesSearch && inDateRange;
     });
-  }, [paymentReports, expenseReports, search, dateFrom, dateTo]);
+  }, [
+    paymentReports,
+    expenseReports,
+    maintenanceReports,
+    search,
+    dateFrom,
+    dateTo,
+  ]);
 
   const downloadExcel = () => {
     const sheetData = filteredReports.map((r) => ({
@@ -113,8 +170,10 @@ export default function ReportsPage() {
     XLSX.writeFile(workbook, "reports.xlsx");
   };
 
-  const isLoading = paymentsLoading || expensesLoading;
-  const isError = paymentsError || expensesError;
+  const isLoading =
+    paymentsLoading || expensesLoading || maintenanceLoading || tenantsLoading;
+  const isError =
+    paymentsError || expensesError || maintenanceError || tenantsError;
 
   // Skeleton component
   const SkeletonRow = () => (

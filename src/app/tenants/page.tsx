@@ -31,6 +31,8 @@ import { INSERT_TENANT } from "@/lib/mutations/InsertTenant";
 import { TenantModal } from "@/components/TenantModal";
 import { DELETE_TENANT } from "@/lib/mutations/DeleteTenant";
 import Sidebar from "@/components/Dashboard/Sidebar";
+import { toast } from "sonner";
+import { DeleteModal } from "@/components/DeleteModal"; // ✅ import your modal
 
 interface Tenant {
   id: number;
@@ -55,8 +57,6 @@ interface Apartment {
 }
 
 const Tenants: React.FC = () => {
-  const deletedIdRef = useRef<number | null>(null);
-
   const { data, loading, error, refetch } = useQuery(GET_TENANTS, {
     variables: { first: 50 },
   });
@@ -66,11 +66,35 @@ const Tenants: React.FC = () => {
   });
 
   const [insertTenant] = useMutation(INSERT_TENANT, {
-    onCompleted: () => refetch(),
+    onCompleted: () => {
+      refetch();
+      toast.success("Tenant added!", {
+        description: "Tenant was successfully added.",
+      });
+    },
   });
-  const [updateTenant] = useMutation(UPDATE_TENANT);
+
+  const [updateTenant] = useMutation(UPDATE_TENANT, {
+    onCompleted: () => {
+      refetch();
+      closeModal();
+      toast.success("Tenant updated!", {
+        description: "Tenant details were successfully updated.",
+        duration: 10000,
+      });
+    },
+  });
+
   const [updateApartmentStatus] = useMutation(UPDATE_APARTMENT);
-  const [deleteTenant] = useMutation(DELETE_TENANT);
+
+  const [deleteTenant] = useMutation(DELETE_TENANT, {
+    onCompleted: () => {
+      refetch();
+      toast.error("Tenant deleted!", {
+        description: "Tenant was successfully deleted.",
+      });
+    },
+  });
 
   const apartmentsMapped: Apartment[] =
     apartmentsData?.apartmentsCollection?.edges.map((edge: any) => ({
@@ -83,6 +107,10 @@ const Tenants: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
+
+  // ✅ Delete modal state
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedTenantId, setSelectedTenantId] = useState<number | null>(null);
 
   const tenantsMapped: Tenant[] =
     data?.tenantsCollection?.edges.map((edge: any) => ({
@@ -162,17 +190,19 @@ const Tenants: React.FC = () => {
     }
   };
 
-  const handleDeleteTenant = async (id: number) => {
-    if (confirm("Are you sure you want to delete this tenant?")) {
-      try {
-        deletedIdRef.current = id;
-        await deleteTenant({
-          variables: { filter: { id: { eq: id } }, atMost: 1 },
-        });
-      } catch (err) {
-        console.error("Error deleting tenant:", err);
-        alert("Failed to delete tenant. Please try again.");
-      }
+  // ✅ Open Delete Modal
+  const openDeleteModal = (id: number) => {
+    setSelectedTenantId(id);
+    setIsDeleteOpen(true);
+  };
+
+  // ✅ Confirm Delete
+  const handleConfirmDelete = () => {
+    if (selectedTenantId) {
+      deleteTenant({
+        variables: { filter: { id: { eq: selectedTenantId } }, atMost: 1 },
+      });
+      setIsDeleteOpen(false);
     }
   };
 
@@ -305,7 +335,7 @@ const Tenants: React.FC = () => {
                         <Edit size={16} />
                       </button>
                       <button
-                        onClick={() => handleDeleteTenant(tenant.id)}
+                        onClick={() => openDeleteModal(tenant.id)}
                         className="p-2 rounded-lg hover:bg-red-50 text-red-600 hover:text-red-700 transition"
                       >
                         <Trash2 size={16} />
@@ -314,7 +344,7 @@ const Tenants: React.FC = () => {
                   </TableRow>
                 ))}
 
-                {/* ✅ Total Row */}
+                {/* Total Row */}
                 <TableRow className="bg-gray-100 font-semibold text-gray-900">
                   <TableCell className="p-4" colSpan={1}>
                     Total
@@ -328,7 +358,7 @@ const Tenants: React.FC = () => {
             </Table>
           </div>
 
-          {/* Modal */}
+          {/* Tenant Modal */}
           {isModalOpen && (
             <TenantModal
               initialData={editingTenant}
@@ -337,6 +367,13 @@ const Tenants: React.FC = () => {
               apartments={apartmentsMapped}
             />
           )}
+
+          {/* ✅ Delete Modal */}
+          <DeleteModal
+            isOpen={isDeleteOpen}
+            onClose={() => setIsDeleteOpen(false)}
+            onConfirm={handleConfirmDelete}
+          />
         </div>
       </div>
     </div>
